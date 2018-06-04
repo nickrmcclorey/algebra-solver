@@ -21,7 +21,26 @@ public class Expression {
 	
 	
 	public void parseExpression(String input) {
+
+		final char space = ' ';
 		
+		double parsedNumber = Double.NaN;
+		String doubleAsString = "";
+		boolean expectingNumber = true;
+		boolean insideNumber = false;
+	
+		for (int k = 0; k < input.length(); k++) {
+			char currentChar = input.charAt(k);
+			// if char is a number and we're expecting a number
+			if (currentChar >= '1' && currentChar <= '9' && expectingNumber) {
+				doubleAsString = doubleAsString + input.charAt(k);
+				insideNumber = true;
+			} else if (insideNumber && currentChar == space) {
+				parsedNumber = Double.parseDouble(doubleAsString);
+				insideNumber = false;
+				expectingNumber = false;
+			}
+		}
 	}
 
 	// TODO: implement function
@@ -35,10 +54,22 @@ public class Expression {
 	public void printExpression() {
 		if (this.type == math_type.number) {
 			System.out.print(this.numericValue);
+		} else if (this.type == math_type.symbol) {
+			System.out.print('x');
 		} else {
+			
+			if (this.operator == Operator.subtract || this.operator == Operator.divide) {
+				System.out.print("(");
+			}
+			
 			firstExp.printExpression();
 			System.out.print(" " + this.printOperatorString() + " ");
 			secondExp.printExpression();
+			
+			if (this.operator == Operator.subtract || this.operator == Operator.divide) {
+				System.out.print(")");
+			}
+			
 		}
 	}
 	
@@ -82,6 +113,9 @@ public class Expression {
 		return type;
 	}
 	public void setType(math_type type) {
+		if (type == math_type.symbol) {
+			this.reset();
+		}
 		this.type = type;
 	}
 	public double getNumericValue() {
@@ -109,6 +143,10 @@ public class Expression {
 	public void setSecondExp(Expression secondExp) {
 		this.secondExp = secondExp;
 		this.setType(math_type.parent);
+	}
+	
+	public void setSecondExp(double number) {
+		this.secondExp = new Expression(number);
 	}
 
 	public Expression getFirstExp() {

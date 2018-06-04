@@ -4,13 +4,26 @@ public class Algebra_main {
 
 	public static void main(String[] args) {
 		
-		Expression master = new Expression();
-		master.setFirstExp(new Expression(3));
-		master.setSecondExp(new Expression(5));
-		master.setOperator(Operator.add);
+		Expression left = new Expression();
+		left.setFirstExp(new Expression(3));
+		left.setSecondExp(new Expression(5));
+		left.setOperator(Operator.subtract);
 		
-		System.out.println(master.getType());
-		master.printExpression();
+		Expression second = new Expression();
+		second.setFirstExp(8);
+		Expression x = new Expression();
+		x.setType(math_type.symbol);
+		second.setSecondExp(x);
+		
+		left.setSecondExp(second);
+		left.getSecondExp().setOperator(Operator.subtract);
+		
+		Expression right = new Expression(5);
+		
+		Equation master = new Equation(left, right);
+		
+		
+		master.printEquation();
 
 	}
 
