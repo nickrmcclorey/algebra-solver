@@ -1,5 +1,5 @@
 package algebra;
 
 public enum Operator {
-	add, subtract, multiply, divide, power
+	add, multiply
 }

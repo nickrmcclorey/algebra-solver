@@ -1,21 +1,17 @@
 package algebra;
-
+import java.util.ArrayList;
 
 public class Expression {
+	
+	public ArrayList<Expression> terms;
+	public Operator operator;
 	
 	private math_type type;
 	private double numericValue;
 	
-	private Expression firstExp;
-	private Expression secondExp;
-	private Operator operator;
-	
 	private void reset() {
 		this.type = null;
 		this.numericValue = Double.NaN;
-		this.firstExp = null;
-		this.secondExp = null;
-		this.operator = null;
 	}
 	
 	
@@ -43,6 +39,29 @@ public class Expression {
 		}
 	}
 
+	
+	
+	public void add(Expression newTerm) {
+		if (this.type == math_type.number) {
+			Expression remember = new Expression(this.numericValue);
+			this.reset();
+			this.setType(math_type.parent);
+			this.terms = new ArrayList<Expression>(2);
+			this.terms.add(remember);
+			
+		} else if (this.type == math_type.symbol) {
+			this.reset();
+			Expression x = new Expression();
+			x.setType(math_type.symbol);
+			this.terms = new ArrayList<Expression>();
+			this.terms.add(x);
+		}
+		this.terms.add(newTerm);
+	}
+	
+	
+	
+	
 	// TODO: implement function
 	public Expression simplify() {
 		
@@ -51,44 +70,48 @@ public class Expression {
 	
 	/* === utility functions === */
 	
+	public void makeSymbol() {
+		this.reset();
+		this.setType(math_type.symbol);
+	}
+	
 	public void printExpression() {
 		if (this.type == math_type.number) {
 			System.out.print(this.numericValue);
+			return;
 		} else if (this.type == math_type.symbol) {
-			System.out.print('x');
+			System.out.print("x");
+		} else if (this.type == math_type.parent) {
+		
+			for (int k = 0; k < terms.size() - 1; k++) {
+				this.terms.get(k).printExpression();
+				System.out.print(" + ");
+			}
+			
+			this.terms.get(terms.size() - 1).printExpression();
+			
 		} else {
-			
-			if (this.operator == Operator.subtract || this.operator == Operator.divide) {
-				System.out.print("(");
-			}
-			
-			firstExp.printExpression();
-			System.out.print(" " + this.printOperatorString() + " ");
-			secondExp.printExpression();
-			
-			if (this.operator == Operator.subtract || this.operator == Operator.divide) {
-				System.out.print(")");
-			}
-			
+			System.out.println("this Expression doesn't have a type"); 
+			System.exit(0);
 		}
 	}
 	
 	public String printOperatorString() {
 		
-		if (this.operator == Operator.add) {
-			return "+";
-		} else if (this.operator == Operator.subtract) {
-			return "-";
-		} else if (this.operator == Operator.multiply) {
-			return "*";
-		} else if (this.operator == Operator.divide) {
-			return "/";
-		} else if (this.operator == Operator.power) {
-			return "^";
-		} else {
-			System.out.println("\n" + "ERROR: Operator not set");
-			System.exit(1);
-		}
+//		if (this.operator == Operator.add) {
+//			return "+";
+//		} else if (this.operator == Operator.subtract) {
+//			return "-";
+//		} else if (this.operator == Operator.multiply) {
+//			return "*";
+//		} else if (this.operator == Operator.divide) {
+//			return "/";
+//		} else if (this.operator == Operator.power) {
+//			return "^";
+//		} else {
+//			System.out.println("\n" + "ERROR: Operator not set");
+//			System.exit(1);
+//		}
 		
 		// hopefully something has been found but this just keeps the compiler happy
 		return "";
@@ -108,6 +131,12 @@ public class Expression {
 		this.setNumericValue(number);
 	}
 	
+	public Expression(ArrayList<Expression> terms) {
+		this.reset();
+		this.setType(math_type.parent);
+		this.terms = terms;
+	}
+	
 	/* === getters and setters === */
 	public math_type getType() {
 		return type;
@@ -122,44 +151,11 @@ public class Expression {
 		return numericValue;
 	}
 	public void setNumericValue(double numericValue) {
-		// make sure the firstExp and secondExp are null
 		this.reset();
 		this.numericValue = numericValue;
 		this.type = math_type.number;
 	}
 
-	public Operator getOperator() {
-		return operator;
-	}
 
-	public void setOperator(Operator operator) {
-		this.operator = operator;
-	}
-
-	public Expression getSecondExp() {
-		return secondExp;
-	}
-
-	public void setSecondExp(Expression secondExp) {
-		this.secondExp = secondExp;
-		this.setType(math_type.parent);
-	}
-	
-	public void setSecondExp(double number) {
-		this.secondExp = new Expression(number);
-	}
-
-	public Expression getFirstExp() {
-		return firstExp;
-	}
-
-	public void setFirstExp(Expression firstExp) {
-		this.firstExp = firstExp;
-		this.setType(math_type.parent);
-	}
-	
-	public void setFirstExp(double number) {
-		this.firstExp = new Expression(number);
-	}
 	
 }

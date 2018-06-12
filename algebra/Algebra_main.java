@@ -1,30 +1,29 @@
 package algebra;
 
+import java.util.ArrayList;
+
 public class Algebra_main {
 
 	public static void main(String[] args) {
 		
-		Expression left = new Expression();
-		left.setFirstExp(new Expression(3));
-		left.setSecondExp(new Expression(5));
-		left.setOperator(Operator.subtract);
-		
-		Expression second = new Expression();
-		second.setFirstExp(8);
-		Expression x = new Expression();
-		x.setType(math_type.symbol);
-		second.setSecondExp(x);
-		
-		left.setSecondExp(second);
-		left.getSecondExp().setOperator(Operator.subtract);
 		
 		Expression right = new Expression(5);
+		ArrayList<Expression> left = new ArrayList<Expression>(3);
+		left.add(new Expression(3));
+		left.add(new Expression(4));
+		left.add(new Expression(12));
 		
-		Equation master = new Equation(left, right);
+		Expression actualLeft = new Expression(left);
 		
+		Expression x = new Expression(0);
+		x.setType(math_type.symbol);
+		Equation master = new Equation(actualLeft, right);
 		
+		right.add(new Expression(2));
+		right.add(x);
 		master.printEquation();
 
+		
 	}
 
 }
