@@ -4,7 +4,27 @@ public class Equation {
 
 	private Expression leftSide;
 	private Expression rightSide;
+	private Expression cleanSide;
+	private Expression varSide;
 	
+	
+	public double solveEquation() {
+		
+		if (leftSide.containsSymbol() && !rightSide.containsSymbol()) {
+			varSide = leftSide;
+			cleanSide = rightSide;
+		} else if (rightSide.containsSymbol() && !leftSide.containsSymbol()) {
+			varSide = rightSide;
+			cleanSide = leftSide;
+		} else {
+			System.out.println("error, two variables found, that feature is not yet available");
+			System.exit(0);
+		}
+		
+		
+		
+		return 0;
+	}
 	
 	public void printEquation() {
 		leftSide.printExpression();

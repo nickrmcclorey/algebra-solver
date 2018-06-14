@@ -8,19 +8,19 @@ public class Algebra_main {
 		
 		
 		Expression right = new Expression(5);
-		ArrayList<Expression> left = new ArrayList<Expression>(3);
-		left.add(new Expression(3));
-		left.add(new Expression(4));
-		left.add(new Expression(12));
+		Expression left = new Expression(89);
+		left.append(new Expression(3), Operator.add);
+		left.append(new Expression(4), Operator.add);
+		left.append(new Expression(12), Operator.add);
 		
-		Expression actualLeft = new Expression(left);
+	
 		
 		Expression x = new Expression(0);
 		x.setType(math_type.symbol);
-		Equation master = new Equation(actualLeft, right);
+		Equation master = new Equation(left, right);
 		
-		right.add(new Expression(2));
-		right.add(x);
+		right.append(new Expression(2), Operator.add);
+		right.append(x, Operator.subtract);
 		master.printEquation();
 
 		

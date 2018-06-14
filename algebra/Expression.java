@@ -4,7 +4,7 @@ import java.util.ArrayList;
 public class Expression {
 	
 	public ArrayList<Expression> terms;
-	public Operator operator;
+	public ArrayList<Operator> operators;
 	
 	private math_type type;
 	private double numericValue;
@@ -41,25 +41,59 @@ public class Expression {
 
 	
 	
-	public void add(Expression newTerm) {
+	public void initializeOperatorList(Operator secondOperator) {
+		this.operators = new ArrayList<Operator>();
+		
+		if (secondOperator == Operator.add || secondOperator == Operator.subtract) {
+			this.operators.add(Operator.add);
+		} else if (secondOperator == Operator.multiply || secondOperator == Operator.divide) {
+			this.operators.add(Operator.multiply);
+		}
+	}
+	
+	public void append(Expression newTerm, Operator newOperator) {
+		
+		// if this expression is a number of symbol, we must change this expression to a parent
 		if (this.type == math_type.number) {
 			Expression remember = new Expression(this.numericValue);
 			this.reset();
 			this.setType(math_type.parent);
-			this.terms = new ArrayList<Expression>(2);
+			
+			this.terms = new ArrayList<Expression>();
 			this.terms.add(remember);
+			this.initializeOperatorList(newOperator);
 			
 		} else if (this.type == math_type.symbol) {
-			this.reset();
 			Expression x = new Expression();
 			x.setType(math_type.symbol);
+			
 			this.terms = new ArrayList<Expression>();
 			this.terms.add(x);
+			this.initializeOperatorList(newOperator);
+			
 		}
+		
 		this.terms.add(newTerm);
+		this.operators.add(newOperator);
 	}
 	
-	
+	public boolean containsSymbol() {
+		if (this.type == math_type.number) {
+			return false;
+		} else if (this.type == math_type.symbol) {
+			return true;
+		}
+		// else this expression is a parent
+		for (Expression k : this.terms) {
+			if (k.containsSymbol()) {
+				return true;
+			}
+		}
+		
+		// no symbols have been found so return false
+		return false;
+		
+	}
 	
 	
 	// TODO: implement function
@@ -75,6 +109,18 @@ public class Expression {
 		this.setType(math_type.symbol);
 	}
 	
+	public void printOperator(Operator toPrint) {
+		if (toPrint == Operator.add) {
+			System.out.print(" + ");
+		} else if (toPrint == Operator.subtract) {
+			System.out.print(" - ");
+		} else if (toPrint == Operator.divide) {
+			System.out.print(" / ");
+		} else if (toPrint == Operator.multiply) {
+			System.out.print(" * ");
+		}
+	}
+	
 	public void printExpression() {
 		if (this.type == math_type.number) {
 			System.out.print(this.numericValue);
@@ -83,12 +129,13 @@ public class Expression {
 			System.out.print("x");
 		} else if (this.type == math_type.parent) {
 		
-			for (int k = 0; k < terms.size() - 1; k++) {
+			terms.get(0).printExpression();
+			for (int k = 1; k < terms.size(); k++) {
+				printOperator(this.operators.get(k));
 				this.terms.get(k).printExpression();
-				System.out.print(" + ");
+				
 			}
-			
-			this.terms.get(terms.size() - 1).printExpression();
+
 			
 		} else {
 			System.out.println("this Expression doesn't have a type"); 
@@ -96,30 +143,11 @@ public class Expression {
 		}
 	}
 	
-	public String printOperatorString() {
-		
-//		if (this.operator == Operator.add) {
-//			return "+";
-//		} else if (this.operator == Operator.subtract) {
-//			return "-";
-//		} else if (this.operator == Operator.multiply) {
-//			return "*";
-//		} else if (this.operator == Operator.divide) {
-//			return "/";
-//		} else if (this.operator == Operator.power) {
-//			return "^";
-//		} else {
-//			System.out.println("\n" + "ERROR: Operator not set");
-//			System.exit(1);
-//		}
-		
-		// hopefully something has been found but this just keeps the compiler happy
-		return "";
-	}
 	
 	/* === constructors === */
 	public Expression() {
 		this.reset();
+		this.type = math_type.symbol;
 	}
 	
 	public Expression(String inputToParse) {
