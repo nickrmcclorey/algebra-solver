@@ -42,7 +42,7 @@ public class Expression {
 	
 	
 	public void initializeOperatorList(Operator secondOperator) {
-		this.operators = new ArrayList<Operator>();
+		this.operators = new ArrayList<Operator>(0);
 		
 		if (secondOperator == Operator.add || secondOperator == Operator.subtract) {
 			this.operators.add(Operator.add);
@@ -97,10 +97,59 @@ public class Expression {
 	
 	
 	// TODO: implement function
-	public Expression simplify() {
+	public void simplify() {
+		if (this.type != math_type.parent) {
+			return;
+		}
 		
-		return new Expression();
-	}
+		double answer = 0;
+		if (operators.get(0) == Operator.multiply || operators.get(0) == Operator.divide) {
+			answer = 1;
+		}
+		int symbolIndex = -1;
+		Operator symbolOperator = null;
+		
+		for (int k = 0; k < terms.size(); k++) {
+			terms.get(k).simplify();
+			if (terms.get(k).getType() != math_type.symbol) {
+				
+				if (operators.get(k) == Operator.add) {
+					answer += terms.get(k).getNumericValue();
+				} else if (operators.get(k) == Operator.subtract) {
+					answer -= terms.get(k).getNumericValue();
+				} else if (operators.get(k) == Operator.multiply) {
+					answer *= terms.get(k).getNumericValue();
+				} else if (operators.get(k) == Operator.divide) {
+					answer /= terms.get(k).getNumericValue();
+				} else {
+					System.out.println("operator not found");
+					System.exit(0);
+				} // end of inner if
+				
+			} else {
+				symbolIndex = k;
+				symbolOperator = operators.get(k);
+				
+			} // end of outer if
+		} // end of loop
+		
+		
+		
+		if (this.containsSymbol()) {	
+			// It's easier to use constructors to get things the way we want
+			Expression newMe = new Expression(answer);
+			newMe.append(new Expression(), symbolOperator);
+			this.setType(math_type.parent);
+			
+			this.terms = newMe.terms;
+			this.operators = newMe.operators;
+		} else {
+			this.setNumericValue(answer);
+		}
+		
+		
+	
+	}// end of function simplify()
 	
 	/* === utility functions === */
 	
@@ -121,18 +170,27 @@ public class Expression {
 		}
 	}
 	
-	public void printExpression() {
+	public void printExpression(boolean parenthesis) {
+		if (parenthesis) {
+			System.out.print("(");
+		}
+		
+		
 		if (this.type == math_type.number) {
 			System.out.print(this.numericValue);
-			return;
+			
 		} else if (this.type == math_type.symbol) {
 			System.out.print("x");
 		} else if (this.type == math_type.parent) {
 		
-			terms.get(0).printExpression();
+			terms.get(0).printExpression(false);
 			for (int k = 1; k < terms.size(); k++) {
 				printOperator(this.operators.get(k));
-				this.terms.get(k).printExpression();
+				boolean useParenthesis = false;
+				if (this.terms.get(k).type == math_type.parent) {
+					useParenthesis = true;
+				}
+				this.terms.get(k).printExpression(useParenthesis);
 				
 			}
 
@@ -141,6 +199,11 @@ public class Expression {
 			System.out.println("this Expression doesn't have a type"); 
 			System.exit(0);
 		}
+		
+		if (parenthesis) {
+			System.out.print(")");
+		}
+		
 	}
 	
 	

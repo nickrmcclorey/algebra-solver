@@ -27,11 +27,17 @@ public class Equation {
 	}
 	
 	public void printEquation() {
-		leftSide.printExpression();
+		leftSide.printExpression(false);
 		System.out.print(" = ");
-		rightSide.printExpression();
+		rightSide.printExpression(false);
+		System.out.println();
 	}
 	
+	public void simplify() {
+		leftSide.simplify();
+		rightSide.simplify();
+		 
+	}
 	
 	public Equation(Expression left, Expression right) {
 		this.setLeftSide(left);
