@@ -1,12 +1,10 @@
 package algebra;
 
-import java.util.ArrayList;
 
 public class Algebra_main {
 
 	public static void main(String[] args) {
-		
-		
+	
 		Expression right = new Expression(5);
 		Expression left = new Expression(89);
 		left.append(new Expression(3), Operator.add);
@@ -26,7 +24,9 @@ public class Algebra_main {
 		right.append(x, Operator.subtract);
 		master.printEquation();
 		master.simplify();
+		
 		master.printEquation();
+		System.out.println(master.solveEquation());
 		
 	}
 

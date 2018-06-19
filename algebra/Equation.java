@@ -21,9 +21,35 @@ public class Equation {
 			System.exit(0);
 		}
 		
+		// while the variable side has numbers in addition to the variable
+		while (!varSide.isSymbol()) {
 		
+			// varSide removes an Expression from itself and gives it to us so we can transfer it to the other side
+			Expression toTransfer = varSide.isolateVariable();
+			
+
+			
+			if (toTransfer.getOperator(0) == Operator.add) {
+				toTransfer.setOperator(0, Operator.subtract);
+			} else if (toTransfer.getOperator(0) == Operator.subtract) {
+				toTransfer.setOperator(0, Operator.add);
+			} else if (toTransfer.getOperator(0) == Operator.divide) {
+				toTransfer.setOperator(0, Operator.multiply);
+			} else if (toTransfer.getOperator(0) == Operator.multiply) {
+				toTransfer.setOperator(0, Operator.divide);
+			} else {
+				System.out.println("Failed to transfer variable");
+				System.exit(0);
+			}
+			
+			cleanSide.append(new Expression(toTransfer.getNumericValue()), toTransfer.getOperator(0));
+			cleanSide.simplify();
+			
+			
+		}
 		
-		return 0;
+		cleanSide.simplify();
+		return cleanSide.getNumericValue();
 	}
 	
 	public void printEquation() {

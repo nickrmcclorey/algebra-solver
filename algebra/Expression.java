@@ -12,6 +12,8 @@ public class Expression {
 	private void reset() {
 		this.type = null;
 		this.numericValue = Double.NaN;
+		this.operators = null;
+		this.terms = null;
 	}
 	
 	
@@ -51,6 +53,7 @@ public class Expression {
 		}
 	}
 	
+	// add another expression into the terms array
 	public void append(Expression newTerm, Operator newOperator) {
 		
 		// if this expression is a number of symbol, we must change this expression to a parent
@@ -73,10 +76,12 @@ public class Expression {
 			
 		}
 		
+		this.setType(math_type.parent);
 		this.terms.add(newTerm);
 		this.operators.add(newOperator);
 	}
 	
+	// returns true if there is a variable somewhere inside the Expression
 	public boolean containsSymbol() {
 		if (this.type == math_type.number) {
 			return false;
@@ -96,7 +101,7 @@ public class Expression {
 	}
 	
 	
-	// TODO: implement function
+	// does the appropriate mathmatical functions to simplify as much as possible
 	public void simplify() {
 		if (this.type != math_type.parent) {
 			return;
@@ -134,7 +139,7 @@ public class Expression {
 		} // end of loop
 		
 		
-		
+		// if a variable is present, we simplify as much as we can, otherwise we just make this Expression a number
 		if (this.containsSymbol()) {	
 			// It's easier to use constructors to get things the way we want
 			Expression newMe = new Expression(answer);
@@ -152,6 +157,10 @@ public class Expression {
 	}// end of function simplify()
 	
 	/* === utility functions === */
+	
+	public static boolean isOperator(char operator) {
+		return (operator == '*' || operator == '/' || operator == '+' || operator == '-');
+	}
 	
 	public void makeSymbol() {
 		this.reset();
@@ -206,6 +215,41 @@ public class Expression {
 		
 	}
 	
+	public Expression isolateVariable() {
+		if (!this.containsSymbol() || this.type == math_type.symbol) {
+			return null;
+		}
+		
+		
+		// find a numeric value
+		for (int k = 0; k < terms.size(); k++) {
+			if (terms.get(k).containsSymbol()) {
+				continue;
+			}
+			
+			Expression toReturn = new Expression(terms.get(k).getNumericValue());
+			toReturn.operators = new ArrayList<Operator>();
+			toReturn.operators.add(this.operators.get(k));
+			
+			terms.remove(k);
+			operators.remove(k);
+			if (operators.size() == 1 && terms.get(0).isSymbol()) {
+				if (operators.get(0) == Operator.subtract) {
+					operators.set(0, Operator.add);
+					this.append(new Expression(-1), Operator.multiply);
+				} else {
+					this.reset();
+					this.setType(math_type.symbol);
+				}
+				
+			}
+			
+			return toReturn;
+		}
+		
+		return null;
+	}
+	
 	
 	/* === constructors === */
 	public Expression() {
@@ -213,8 +257,35 @@ public class Expression {
 		this.type = math_type.symbol;
 	}
 	
-	public Expression(String inputToParse) {
+	public Expression(String input) {
+
 		
+		String currentNumber = null;
+		boolean lookingForOperator = false;
+		boolean insideNumber = false;
+		for (int k = 0; k < input.length(); k++) {
+			char current = input.charAt(k);
+			
+			if (current >= '1' || current <= '9') {
+				if (lookingForOperator) {
+					System.out.println("error evaluating equation");
+					System.exit(0);
+				}
+				
+				if (insideNumber) {
+					currentNumber = currentNumber + current;
+				} else {
+					insideNumber = true;
+					currentNumber = Character.toString(current);
+				}
+				
+			} else if (Expression.isOperator(current)) {
+				if (currentNumber != null) {
+					
+				}
+			}
+			
+		}
 	}
 	
 	public Expression(double number) {
@@ -247,6 +318,34 @@ public class Expression {
 		this.type = math_type.number;
 	}
 
+	public Operator getOperator(int index) {
+		if (index >= operators.size()) {
+			System.out.println("invalid Operator");
+			System.exit(1);
+		}
+		return operators.get(index);
+	}
+	
+	public void setOperator(int index, Operator newOperator) {
+		operators.set(index, newOperator);
+	}
+	// === simple information getters === //
+	public boolean isParent() {
+		return (this.getType() == math_type.parent) ;
+		
+	}
+	
+	public boolean isSymbol() {
+		return (this.getType() == math_type.symbol) ;
+	}
 
+	public boolean isNumber() {
+		return (this.getType() == math_type.number) ;
+	}
+	
+	
 	
 }
+
+
+
