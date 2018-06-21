@@ -6,13 +6,13 @@ public class Algebra_main {
 	public static void main(String[] args) {
 	
 		Expression right = new Expression(5);
-		Expression left = new Expression(89);
+		Expression left = new Expression(9);
 		left.append(new Expression(3), Operator.add);
 		left.append(new Expression(4), Operator.add);
 		left.append(new Expression(12), Operator.add);
 		
 		Expression innerLeft = new Expression(3);
-		innerLeft.append(new Expression(8), Operator.multiply);
+		innerLeft.append(new Expression(5), Operator.multiply);
 		left.append(innerLeft, Operator.add);
 		
 		

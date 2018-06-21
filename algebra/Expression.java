@@ -44,7 +44,7 @@ public class Expression {
 	
 	
 	public void initializeOperatorList(Operator secondOperator) {
-		this.operators = new ArrayList<Operator>(0);
+		this.operators = new ArrayList<Operator>();
 		
 		if (secondOperator == Operator.add || secondOperator == Operator.subtract) {
 			this.operators.add(Operator.add);
@@ -76,6 +76,24 @@ public class Expression {
 			
 		}
 		
+		// if new operator is multipy or divide when this Expression is an addition sequence or vice versa
+		if (((newOperator == Operator.add || newOperator == Operator.subtract) && operators.get(0) == Operator.multiply) || ((newOperator == Operator.multiply || newOperator == Operator.divide) && operators.get(0) == Operator.add) ) {
+			
+			Expression copy = new Expression();
+			copy.setType(this.getType());
+			copy.setNumericValue(this.getNumericValue());
+			copy.operators = this.operators;
+			copy.terms = this.terms;
+			
+		
+			this.terms = new ArrayList<Expression>();
+			
+			this.terms.add(copy);
+			this.initializeOperatorList(newOperator);
+
+			
+		}
+		
 		this.setType(math_type.parent);
 		this.terms.add(newTerm);
 		this.operators.add(newOperator);
@@ -101,7 +119,7 @@ public class Expression {
 	}
 	
 	
-	// does the appropriate mathmatical functions to simplify as much as possible
+	// does the appropriate mathematical functions to simplify as much as possible
 	public void simplify() {
 		if (this.type != math_type.parent) {
 			return;
@@ -158,6 +176,23 @@ public class Expression {
 	
 	/* === utility functions === */
 	
+	public void invert() {
+		if (this.type == math_type.number) {
+			this.numericValue = 1/numericValue;
+		} else if (this.type == math_type.symbol) {
+			this.reset();
+			operators = new ArrayList<Operator>();
+			terms = new ArrayList<operator>();
+			
+			terms.add(new Expression(1));
+			operators.add(Operator.multiply);
+			
+			terms.add(new Expression());
+			operators.add(Operator.divide);
+		}
+	}
+	
+	// static method. used when parsing math expression
 	public static boolean isOperator(char operator) {
 		return (operator == '*' || operator == '/' || operator == '+' || operator == '-');
 	}
@@ -215,29 +250,39 @@ public class Expression {
 		
 	}
 	
-	public Expression isolateVariable() {
+	public Transfer isolateVariable() {
 		if (!this.containsSymbol() || this.type == math_type.symbol) {
+			System.out.println("didn't find symbol");
 			return null;
 		}
 		
 		
 		// find a numeric value
 		for (int k = 0; k < terms.size(); k++) {
+			// find a term that isn't a symbol
 			if (terms.get(k).containsSymbol()) {
 				continue;
 			}
 			
-			Expression toReturn = new Expression(terms.get(k).getNumericValue());
-			toReturn.operators = new ArrayList<Operator>();
-			toReturn.operators.add(this.operators.get(k));
+			Transfer toReturn = new Transfer();
+			toReturn.setNumber(terms.get(k).getNumericValue());
+			toReturn.setOperator(this.operators.get(k));
+			
 			
 			terms.remove(k);
 			operators.remove(k);
 			if (operators.size() == 1 && terms.get(0).isSymbol()) {
 				if (operators.get(0) == Operator.subtract) {
-					operators.set(0, Operator.add);
+					operators.set(0, Operator.multiply);
 					this.append(new Expression(-1), Operator.multiply);
+				} else if (operators.get(0) == Operator.divide) {
+					operators.set(0, Operator.multiply);
+					
+					
+					
+					
 				} else {
+			
 					this.reset();
 					this.setType(math_type.symbol);
 				}
