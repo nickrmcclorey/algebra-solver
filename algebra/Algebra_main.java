@@ -20,8 +20,8 @@ public class Algebra_main {
 		x.setType(math_type.symbol);
 		Equation master = new Equation(left, right);
 		
-		right.append(new Expression(7), Operator.subtract);
-		right.append(x, Operator.subtract);
+		right.append(new Expression(7), Operator.multiply);
+		right.append(x, Operator.divide);
 		master.printEquation();
 		master.simplify();
 		

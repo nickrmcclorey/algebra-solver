@@ -33,6 +33,7 @@ public class Equation {
 				System.exit(0);
 			} else if (toTransfer.getType() == Transfer_type.invert) {
 				cleanSide.invert();
+				continue;
 			}
 			
 			if (toTransfer.getOperator() == Operator.add) {

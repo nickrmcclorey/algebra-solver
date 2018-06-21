@@ -182,7 +182,7 @@ public class Expression {
 		} else if (this.type == math_type.symbol) {
 			this.reset();
 			operators = new ArrayList<Operator>();
-			terms = new ArrayList<operator>();
+			terms = new ArrayList<Expression>();
 			
 			terms.add(new Expression(1));
 			operators.add(Operator.multiply);
@@ -254,6 +254,12 @@ public class Expression {
 		if (!this.containsSymbol() || this.type == math_type.symbol) {
 			System.out.println("didn't find symbol");
 			return null;
+		// if this Expression is 1/x	
+		} else if (terms.get(0).getNumericValue() == 1 && terms.get(1).isSymbol() && operators.get(1).equals(Operator.divide)) {
+			this.setType(math_type.symbol);
+			Transfer pleaseInvert = new Transfer();
+			pleaseInvert.setType(Transfer_type.invert);
+			return pleaseInvert;
 		}
 		
 		
@@ -277,10 +283,8 @@ public class Expression {
 					this.append(new Expression(-1), Operator.multiply);
 				} else if (operators.get(0) == Operator.divide) {
 					operators.set(0, Operator.multiply);
-					
-					
-					
-					
+					terms.set(0, new Expression(1));
+					this.append(new Expression(), Operator.divide);
 				} else {
 			
 					this.reset();
@@ -291,7 +295,8 @@ public class Expression {
 			
 			return toReturn;
 		}
-		
+		System.out.println("couldn't return anything");
+		System.out.println(operators.get(0));
 		return null;
 	}
 	
