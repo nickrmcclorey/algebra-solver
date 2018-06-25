@@ -69,12 +69,29 @@ public class Equation {
 	public void simplify() {
 		leftSide.simplify();
 		rightSide.simplify();
-		 
 	}
 	
 	public Equation(Expression left, Expression right) {
 		this.setLeftSide(left);
 		this.setRightSide(right);
+	}
+	
+	// string constructor
+	public Equation(String input) {
+		// make sure equation has equals sign
+		if (!input.contains(" ")) {
+			System.out.println("More than one = signs");
+			System.exit(0);
+		}
+		
+		// split the equation on either side of the equal sign
+		String[] sides = new String[2];
+		sides = input.split("=");
+		
+		// set up the Expressions with the split strings
+		leftSide = new Expression(sides[0]);
+		rightSide = new Expression(sides[1]);
+		this.printEquation();
 	}
 	
 	/* === getters and setters === */

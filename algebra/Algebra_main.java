@@ -5,6 +5,15 @@ public class Algebra_main {
 
 	public static void main(String[] args) {
 	
+		
+		String toEvaluate = "3 + 8 = 2 + x";
+		Equation test = new Equation(toEvaluate);
+	    //Expression test = new Expression("8 + 4 - 1");
+		test.printEquation();
+		
+		System.out.println(test.solveEquation());
+
+		
 		Expression right = new Expression(5);
 		Expression left = new Expression(9);
 		left.append(new Expression(3), Operator.add);

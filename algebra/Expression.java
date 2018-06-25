@@ -3,11 +3,13 @@ import java.util.ArrayList;
 
 public class Expression {
 	
+	// fields
 	public ArrayList<Expression> terms;
 	public ArrayList<Operator> operators;
-	
 	private math_type type;
 	private double numericValue;
+	
+	
 	
 	private void reset() {
 		this.type = null;
@@ -18,29 +20,25 @@ public class Expression {
 	
 	
 	
-	public void parseExpression(String input) {
-
-		final char space = ' ';
-		
-		double parsedNumber = Double.NaN;
-		String doubleAsString = "";
-		boolean expectingNumber = true;
-		boolean insideNumber = false;
-	
-		for (int k = 0; k < input.length(); k++) {
-			char currentChar = input.charAt(k);
-			// if char is a number and we're expecting a number
-			if (currentChar >= '1' && currentChar <= '9' && expectingNumber) {
-				doubleAsString = doubleAsString + input.charAt(k);
-				insideNumber = true;
-			} else if (insideNumber && currentChar == space) {
-				parsedNumber = Double.parseDouble(doubleAsString);
-				insideNumber = false;
-				expectingNumber = false;
-			}
+	public void clean() {
+		if (this.getType() != math_type.parent) {
+			operators = null;
+			terms = null;
+		} else if (this.getType() != math_type.number) {
+			this.numericValue = Double.NaN;
 		}
+		
+		if (terms != null && terms.size() == 1) {
+			if (terms.get(0).isNumber()) {
+				this.setNumericValue(terms.get(0).getNumericValue());
+			} else if (terms.get(0).isParent() && this.terms.get(0).terms != null) {
+				this.terms = terms.get(0).terms;
+				this.operators = terms.get(0).operators;
+				this.setType(math_type.parent);
+			} 
+		}
+		
 	}
-
 	
 	
 	public void initializeOperatorList(Operator secondOperator) {
@@ -73,25 +71,32 @@ public class Expression {
 			this.terms = new ArrayList<Expression>();
 			this.terms.add(x);
 			this.initializeOperatorList(newOperator);
+		} else if (this.type == math_type.parent && !isSameOrder(newOperator, operators.get(0))) {
 			
+			Expression oldMe = new Expression (this);
+			initializeOperatorList(newOperator);
+			operators.add(newOperator);
+			this.terms = new ArrayList<Expression>();
+			terms.add(oldMe);
+			terms.add(newTerm);
+			
+		} else if (this.getType() == null) {
+			
+			operators = new ArrayList<Operator>();
+			terms = new ArrayList<Expression>();
+			operators.add(newOperator);
+			terms.add(newTerm);
+			this.setType(math_type.parent);
+			return;
 		}
 		
-		// if new operator is multipy or divide when this Expression is an addition sequence or vice versa
-		if (((newOperator == Operator.add || newOperator == Operator.subtract) && operators.get(0) == Operator.multiply) || ((newOperator == Operator.multiply || newOperator == Operator.divide) && operators.get(0) == Operator.add) ) {
-			
-			Expression copy = new Expression();
-			copy.setType(this.getType());
-			copy.setNumericValue(this.getNumericValue());
-			copy.operators = this.operators;
-			copy.terms = this.terms;
-			
-		
-			this.terms = new ArrayList<Expression>();
-			
-			this.terms.add(copy);
-			this.initializeOperatorList(newOperator);
 
-			
+		
+		if (operators == null) {
+			this.initializeOperatorList(newOperator);
+		}
+		if (terms == null) {
+			terms = new ArrayList<Expression>();
 		}
 		
 		this.setType(math_type.parent);
@@ -300,7 +305,20 @@ public class Expression {
 		return null;
 	}
 	
+	public static Operator parseOperator(char current) {
+		if (current == '+') {
+			return Operator.add;
+		} else if (current == '-') {
+			return Operator.subtract;
+		} else if (current == '*') {
+			return Operator.multiply;
+		} else if (current == '/') {
+			return Operator.divide;
+		}
+		return null;
+	}
 	
+
 	/* === constructors === */
 	public Expression() {
 		this.reset();
@@ -308,19 +326,24 @@ public class Expression {
 	}
 	
 	public Expression(String input) {
-
+		this.reset();
 		
+		input = input.replace(" ", "");
+		//this.setType(math_type.parent);
+		double lastNumber = Double.NaN;
+		Operator lastOperator = Operator.add;
 		String currentNumber = null;
 		boolean lookingForOperator = false;
 		boolean insideNumber = false;
 		for (int k = 0; k < input.length(); k++) {
 			char current = input.charAt(k);
 			
-			if (current >= '1' || current <= '9') {
-				if (lookingForOperator) {
-					System.out.println("error evaluating equation");
-					System.exit(0);
-				}
+			if (current == 'x') {
+				this.append(new Expression(), lastOperator);
+				continue;
+			}
+			
+			if ((current >= '1' && current <= '9') && !lookingForOperator)  {
 				
 				if (insideNumber) {
 					currentNumber = currentNumber + current;
@@ -330,12 +353,37 @@ public class Expression {
 				}
 				
 			} else if (Expression.isOperator(current)) {
+				
 				if (currentNumber != null) {
 					
+					lastNumber = Double.parseDouble(currentNumber);
+					
+					this.append(new Expression(lastNumber), lastOperator);
+				
+					currentNumber = null;
+					lastOperator = null;
+					lastNumber = Double.NaN;
+					insideNumber = false;
+					lookingForOperator = true;
 				}
+				
+				lastOperator = parseOperator(current);
+				lookingForOperator = false;
+				
+			} else {
+				System.out.println("error evaluating equation");
+				System.exit(0);
 			}
 			
 		}
+		
+		// parsing and adding the last number to the equation
+		if (currentNumber != null) {
+			lastNumber = Double.parseDouble(currentNumber);
+			this.append(new Expression(lastNumber), lastOperator);
+		}
+		
+		
 	}
 	
 	public Expression(double number) {
@@ -343,13 +391,19 @@ public class Expression {
 		this.setNumericValue(number);
 	}
 	
-	public Expression(ArrayList<Expression> terms) {
-		this.reset();
-		this.setType(math_type.parent);
-		this.terms = terms;
-	}
 	
+	
+	public Expression(Expression toCopy) {
+		this.terms = toCopy.terms;
+		this.operators = toCopy.operators;
+		this.numericValue = toCopy.numericValue;
+		this.type = toCopy.getType();
+	}
+
+
+
 	/* === getters and setters === */
+	
 	public math_type getType() {
 		return type;
 	}
@@ -393,7 +447,9 @@ public class Expression {
 		return (this.getType() == math_type.number) ;
 	}
 	
-	
+	public boolean isSameOrder(Operator x, Operator y)  {
+		return (((x == Operator.add || x == Operator.subtract) && (y == Operator.add || y == Operator.subtract))    ||     ((x == Operator.multiply || x == Operator.divide) && (y == Operator.multiply || y == Operator.divide)));
+	}
 	
 }
 
