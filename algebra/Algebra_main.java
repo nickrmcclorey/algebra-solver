@@ -6,12 +6,11 @@ public class Algebra_main {
 	public static void main(String[] args) {
 	
 		
-		String toEvaluate = "3 + 8 = 2 + x";
+		String toEvaluate = "3 * 8 = x + 2 + 1 + 4/ 5 * 2 + 1";
 		Equation test = new Equation(toEvaluate);
 	    //Expression test = new Expression("8 + 4 - 1");
 		test.printEquation();
-		
-		System.out.println(test.solveEquation());
+		//System.out.println(test.solveEquation());
 
 		
 		Expression right = new Expression(5);

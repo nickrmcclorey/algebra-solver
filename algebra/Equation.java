@@ -91,7 +91,7 @@ public class Equation {
 		// set up the Expressions with the split strings
 		leftSide = new Expression(sides[0]);
 		rightSide = new Expression(sides[1]);
-		this.printEquation();
+		
 	}
 	
 	/* === getters and setters === */

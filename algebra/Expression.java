@@ -40,6 +40,32 @@ public class Expression {
 		
 	}
 	
+	private void sortOperators() {
+		
+		if (operators == null || operators.size() < 2) {
+			return;
+		}
+		
+		boolean sorted = false;
+		while (!sorted) {
+			sorted = true;
+			for (int k = 1; k < operators.size(); k++) {
+				if (isSameOrder(operators.get(k), Operator.multiply)) {
+					Expression toNest = new Expression(terms.get(k-1));
+					toNest.append(terms.get(k),operators.get(k));
+					Operator operatorOfNested = operators.get(k-1);
+					
+					terms.remove(k);
+					terms.remove(k-1);
+					operators.remove(k);
+					operators.remove(k-1);
+					append(toNest, operatorOfNested);
+					sorted = false;
+					break;
+				}
+			}
+		}
+	}
 	
 	public void initializeOperatorList(Operator secondOperator) {
 		this.operators = new ArrayList<Operator>();
@@ -71,14 +97,6 @@ public class Expression {
 			this.terms = new ArrayList<Expression>();
 			this.terms.add(x);
 			this.initializeOperatorList(newOperator);
-		} else if (this.type == math_type.parent && !isSameOrder(newOperator, operators.get(0))) {
-			
-			Expression oldMe = new Expression (this);
-			initializeOperatorList(newOperator);
-			operators.add(newOperator);
-			this.terms = new ArrayList<Expression>();
-			terms.add(oldMe);
-			terms.add(newTerm);
 			
 		} else if (this.getType() == null) {
 			
@@ -326,24 +344,37 @@ public class Expression {
 	}
 	
 	public Expression(String input) {
-		this.reset();
-		
+		// clean input
 		input = input.replace(" ", "");
-		//this.setType(math_type.parent);
-		double lastNumber = Double.NaN;
+		
+		// find first operator as we need it
 		Operator lastOperator = Operator.add;
+//		for (int k = 0; k < input.length(); k++) {
+//			if (isOperator(input.charAt(k))) {
+//				lastOperator = parseOperator(input.charAt(k));
+//				break;
+//			} else {
+//				lastOperator = Operator.multiply;
+//			}
+//		}
+		
+		double lastNumber = Double.NaN;
 		String currentNumber = null;
 		boolean lookingForOperator = false;
 		boolean insideNumber = false;
+		
 		for (int k = 0; k < input.length(); k++) {
 			char current = input.charAt(k);
 			
 			if (current == 'x') {
+				if (lastOperator == null) {
+					this.makeSymbol();
+				}
 				this.append(new Expression(), lastOperator);
 				continue;
 			}
 			
-			if ((current >= '1' && current <= '9') && !lookingForOperator)  {
+			if (current >= '1' && current <= '9')  {
 				
 				if (insideNumber) {
 					currentNumber = currentNumber + current;
@@ -358,36 +389,42 @@ public class Expression {
 					
 					lastNumber = Double.parseDouble(currentNumber);
 					
-					this.append(new Expression(lastNumber), lastOperator);
-				
+					if (lastOperator == null) {
+						this.setNumericValue(lastNumber);
+					} else {
+						this.append(new Expression(lastNumber), lastOperator);
+					}
 					currentNumber = null;
 					lastOperator = null;
 					lastNumber = Double.NaN;
 					insideNumber = false;
-					lookingForOperator = true;
+					
 				}
 				
 				lastOperator = parseOperator(current);
-				lookingForOperator = false;
+				
 				
 			} else {
 				System.out.println("error evaluating equation");
 				System.exit(0);
 			}
+			sortOperators();
 			
 		}
 		
-		// parsing and adding the last number to the equation
+		// parsing and adding the last number to the equation. not necessary if last term is variable
 		if (currentNumber != null) {
 			lastNumber = Double.parseDouble(currentNumber);
 			this.append(new Expression(lastNumber), lastOperator);
 		}
 		
 		
+		
 	}
 	
 	public Expression(double number) {
 		this.reset();
+		this.setType(math_type.number);
 		this.setNumericValue(number);
 	}
 	
