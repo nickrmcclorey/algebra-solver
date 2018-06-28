@@ -1,17 +1,27 @@
 package algebra;
 
+import java.util.Scanner;
 
 public class Algebra_main {
 
 	public static void main(String[] args) {
-	
+		System.out.println("Enter equation");
+		Scanner keyboard = new Scanner(System.in);
+		//String toEvaluate = keyboard.nextLine();
 		
-		String toEvaluate = "3 * 8 = x + 2 + 1 + 4/ 5 * 2 + 1";
+		//String toEvaluate = "3 * 85 = x + 2 + 1 + 4* 5 * 2 + 1";
+		String toEvaluate = "4*x+3*2=8*1";
+		
 		Equation test = new Equation(toEvaluate);
 	    //Expression test = new Expression("8 + 4 - 1");
+		System.out.println("parsed equation: ");
 		test.printEquation();
-		//System.out.println(test.solveEquation());
-
+		System.out.print("# of operators");
+		System.out.println(test.getLeftSide().operators.size());
+		
+		
+		System.out.println(test.solveEquation());
+		System.out.println("answer above");
 		
 		Expression right = new Expression(5);
 		Expression left = new Expression(9);

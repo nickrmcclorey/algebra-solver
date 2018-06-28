@@ -23,6 +23,8 @@ public class Equation {
 		
 		// while the variable side has numbers in addition to the variable
 		while (!varSide.isSymbol()) {
+			varSide.clean();
+			cleanSide.clean();
 			this.printEquation();
 			// varSide removes an Expression from itself and gives it to us so we can transfer it to the other side
 			Transfer toTransfer = varSide.isolateVariable();
@@ -79,14 +81,19 @@ public class Equation {
 	// string constructor
 	public Equation(String input) {
 		// make sure equation has equals sign
-		if (!input.contains(" ")) {
-			System.out.println("More than one = signs");
+		if (!input.contains("=")) {
+			System.out.println("No = sign found");
 			System.exit(0);
 		}
 		
 		// split the equation on either side of the equal sign
-		String[] sides = new String[2];
+		String[] sides = null;
 		sides = input.split("=");
+		
+		if (sides.length > 2) {
+			System.out.println("more than one = signs found");
+			System.exit(0);
+		}
 		
 		// set up the Expressions with the split strings
 		leftSide = new Expression(sides[0]);

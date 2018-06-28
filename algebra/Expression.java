@@ -10,7 +10,7 @@ public class Expression {
 	private double numericValue;
 	
 	
-	
+	// sets everything to null or NaN
 	private void reset() {
 		this.type = null;
 		this.numericValue = Double.NaN;
@@ -18,55 +18,68 @@ public class Expression {
 		this.terms = null;
 	}
 	
+	// makes this Expression a variable
+	public void makeSymbol() {
+		this.reset();
+		this.setType(math_type.symbol);
+	}
 	
 	
+	// does some checks to make sure the data is formatted in a good way. Call this after mutating the object
 	public void clean() {
-		if (this.getType() != math_type.parent) {
-			operators = null;
-			terms = null;
-		} else if (this.getType() != math_type.number) {
-			this.numericValue = Double.NaN;
-		}
-		
 		if (terms != null && terms.size() == 1) {
-			if (terms.get(0).isNumber()) {
-				this.setNumericValue(terms.get(0).getNumericValue());
-			} else if (terms.get(0).isParent() && this.terms.get(0).terms != null) {
-				this.terms = terms.get(0).terms;
-				this.operators = terms.get(0).operators;
-				this.setType(math_type.parent);
-			} 
+			this.copyFrom(terms.get(0));
+		} 
+		
+		// prevents the first operator from being of a different order than the others
+		if (operators != null && operators.size() >= 2 && !isSameOrder(operators.get(0), operators.get(1))) {
+			if (isSameOrder(operators.get(1), Operator.multiply)) {
+				operators.set(0, Operator.multiply);
+			} else {
+				operators.set(0, Operator.add);
+			}
 		}
 		
 	}
 	
+	/* used by String constructor to apply order of operations
+	 * Expressions can have Expressions nested inside of them
+	 * Multiplication goes before addition so multiplication is put in its own Expression and 
+	 * nested inside inside this Expression. This is how I keep track of order of operations
+	 */
 	private void sortOperators() {
 		
-		if (operators == null || operators.size() < 2) {
+		// base cases
+		if (operators == null || operators.size() < 2 || !this.containsMultOrDiv()) {
 			return;
 		}
 		
-		boolean sorted = false;
-		while (!sorted) {
-			sorted = true;
-			for (int k = 1; k < operators.size(); k++) {
-				if (isSameOrder(operators.get(k), Operator.multiply)) {
-					Expression toNest = new Expression(terms.get(k-1));
-					toNest.append(terms.get(k),operators.get(k));
-					Operator operatorOfNested = operators.get(k-1);
-					
-					terms.remove(k);
-					terms.remove(k-1);
-					operators.remove(k);
-					operators.remove(k-1);
-					append(toNest, operatorOfNested);
-					sorted = false;
-					break;
-				}
+		int k = 1;
+		// for loop exists to find a term that is multiplication or division so we can "nest" it
+		for (k = 1; k < operators.size(); k++) {
+			if (isSameOrder(operators.get(k), Operator.multiply)) {
+				break;
 			}
 		}
+		
+			// make new Expression with the multiplication or division operation inside
+			Expression toNest = new Expression(terms.get(k-1));
+			toNest.append(terms.get(k),operators.get(k));
+			Operator operatorOfNested = operators.get(k-1);
+
+			// remove the elements, combine them, and nest the new Expression inside this Expression
+			terms.remove(k);
+			terms.remove(k-1);
+			operators.remove(k);
+			operators.remove(k-1);
+			append(toNest, operatorOfNested);
+
+			// recursive call - could implement loop instead
+			this.sortOperators();
+
 	}
 	
+	// the first Operator is usually meaningless but I like to have it as the same order of operation as the other operators
 	public void initializeOperatorList(Operator secondOperator) {
 		this.operators = new ArrayList<Operator>();
 		
@@ -77,7 +90,7 @@ public class Expression {
 		}
 	}
 	
-	// add another expression into the terms array
+	// add another expression into the terms array along with adding an operator
 	public void append(Expression newTerm, Operator newOperator) {
 		
 		// if this expression is a number of symbol, we must change this expression to a parent
@@ -109,6 +122,7 @@ public class Expression {
 		}
 		
 
+		// initialize ArrayLists if needed
 		
 		if (operators == null) {
 			this.initializeOperatorList(newOperator);
@@ -144,6 +158,7 @@ public class Expression {
 	
 	// does the appropriate mathematical functions to simplify as much as possible
 	public void simplify() {
+		this.clean();
 		if (this.type != math_type.parent) {
 			return;
 		}
@@ -152,7 +167,7 @@ public class Expression {
 		if (operators.get(0) == Operator.multiply || operators.get(0) == Operator.divide) {
 			answer = 1;
 		}
-		int symbolIndex = -1;
+
 		Operator symbolOperator = null;
 		
 		for (int k = 0; k < terms.size(); k++) {
@@ -173,7 +188,7 @@ public class Expression {
 				} // end of inner if
 				
 			} else {
-				symbolIndex = k;
+				
 				symbolOperator = operators.get(k);
 				
 			} // end of outer if
@@ -185,10 +200,8 @@ public class Expression {
 			// It's easier to use constructors to get things the way we want
 			Expression newMe = new Expression(answer);
 			newMe.append(new Expression(), symbolOperator);
-			this.setType(math_type.parent);
+			this.copyFrom(newMe);
 			
-			this.terms = newMe.terms;
-			this.operators = newMe.operators;
 		} else {
 			this.setNumericValue(answer);
 		}
@@ -197,86 +210,16 @@ public class Expression {
 	
 	}// end of function simplify()
 	
-	/* === utility functions === */
-	
-	public void invert() {
-		if (this.type == math_type.number) {
-			this.numericValue = 1/numericValue;
-		} else if (this.type == math_type.symbol) {
-			this.reset();
-			operators = new ArrayList<Operator>();
-			terms = new ArrayList<Expression>();
-			
-			terms.add(new Expression(1));
-			operators.add(Operator.multiply);
-			
-			terms.add(new Expression());
-			operators.add(Operator.divide);
-		}
-	}
-	
-	// static method. used when parsing math expression
-	public static boolean isOperator(char operator) {
-		return (operator == '*' || operator == '/' || operator == '+' || operator == '-');
-	}
-	
-	public void makeSymbol() {
-		this.reset();
-		this.setType(math_type.symbol);
-	}
-	
-	public void printOperator(Operator toPrint) {
-		if (toPrint == Operator.add) {
-			System.out.print(" + ");
-		} else if (toPrint == Operator.subtract) {
-			System.out.print(" - ");
-		} else if (toPrint == Operator.divide) {
-			System.out.print(" / ");
-		} else if (toPrint == Operator.multiply) {
-			System.out.print(" * ");
-		}
-	}
-	
-	public void printExpression(boolean parenthesis) {
-		if (parenthesis) {
-			System.out.print("(");
-		}
-		
-		
-		if (this.type == math_type.number) {
-			System.out.print(this.numericValue);
-			
-		} else if (this.type == math_type.symbol) {
-			System.out.print("x");
-		} else if (this.type == math_type.parent) {
-		
-			terms.get(0).printExpression(false);
-			for (int k = 1; k < terms.size(); k++) {
-				printOperator(this.operators.get(k));
-				boolean useParenthesis = false;
-				if (this.terms.get(k).type == math_type.parent) {
-					useParenthesis = true;
-				}
-				this.terms.get(k).printExpression(useParenthesis);
-				
-			}
-
-			
-		} else {
-			System.out.println("this Expression doesn't have a type"); 
-			System.exit(0);
-		}
-		
-		if (parenthesis) {
-			System.out.print(")");
-		}
-		
-	}
-	
+	// USE FUNCTION CAREFULLY - it is mutable and significantly changes this expression. 
+	// It removes part of the Expression and returns it along with its operator in a special class, Transfer
+	// This function is used by the Equation class to transfer terms from one side of the equation to the other
 	public Transfer isolateVariable() {
+		
+		// if this Expression doesn't have a variable or is a variable, tell the equation to multiply by one
 		if (!this.containsSymbol() || this.type == math_type.symbol) {
-			System.out.println("didn't find symbol");
-			return null;
+			Transfer timesOne = new Transfer();
+			timesOne.setNumber(1);
+			timesOne.setOperator(Operator.multiply);
 		// if this Expression is 1/x	
 		} else if (terms.get(0).getNumericValue() == 1 && terms.get(1).isSymbol() && operators.get(1).equals(Operator.divide)) {
 			this.setType(math_type.symbol);
@@ -285,16 +228,19 @@ public class Expression {
 			return pleaseInvert;
 		}
 		
-		
-		// find a numeric value
+		//TODO: clean up this loop. The structure of the code below is aweful
+		// finding a numeric value
 		for (int k = 0; k < terms.size(); k++) {
 			// find a term that isn't a symbol
 			if (terms.get(k).containsSymbol()) {
 				continue;
 			}
 			
+			Expression clean = terms.get(k);
+			clean.simplify();
+			
 			Transfer toReturn = new Transfer();
-			toReturn.setNumber(terms.get(k).getNumericValue());
+			toReturn.setNumber(clean.getNumericValue());
 			toReturn.setOperator(this.operators.get(k));
 			
 			
@@ -323,45 +269,128 @@ public class Expression {
 		return null;
 	}
 	
-	public static Operator parseOperator(char current) {
-		if (current == '+') {
-			return Operator.add;
-		} else if (current == '-') {
-			return Operator.subtract;
-		} else if (current == '*') {
-			return Operator.multiply;
-		} else if (current == '/') {
-			return Operator.divide;
+	
+	// function asks: are any of the TOP LEVEL operators multiplication or division?
+	// this could return false if there is nested multiplication
+	public boolean containsMultOrDiv() {
+		if (operators == null) {
+			return false;
 		}
-		return null;
+		
+		// for each loop looking for multiplication or division
+		for (Operator k : operators) {
+			if (k == Operator.multiply || k == Operator.divide) {
+				return true;
+			}
+		}
+		
+		// loop didn't find multiplication or division in operators
+		return false;
+		
+	}
+	
+	
+	/* === utility functions === */
+	
+	public void invert() {
+		if (this.type == math_type.number) {
+			this.numericValue = 1/numericValue;
+		} else if (this.type == math_type.symbol) {
+			this.reset();
+			operators = new ArrayList<Operator>();
+			terms = new ArrayList<Expression>();
+			
+			terms.add(new Expression(1));
+			operators.add(Operator.multiply);
+			
+			terms.add(new Expression());
+			operators.add(Operator.divide);
+		} else {
+			//TODO: implement this feature
+			System.out.println("inverting polynomials isn't a feature yet");
+			System.exit(0);
+		}
+	}
+	
+	
+	
+	
+	// parenthesis parameter determines whether parenthesis surounds this expression
+	public void printExpression(boolean parenthesis) {
+		if (parenthesis) {
+			System.out.print("(");
+		}
+		
+		// different instructions depending whether this is a number, variable or parent
+		if (this.type == math_type.number) {
+			System.out.print(this.numericValue);
+			
+		} else if (this.type == math_type.symbol) {
+			System.out.print("x");
+		} else if (this.type == math_type.parent) {
+		
+			// first Operator isn't printed
+			if (this.terms.get(0).type == math_type.parent) {
+				terms.get(0).printExpression(true);
+			} else {
+				terms.get(0).printExpression(false);
+			}
+			
+			// only parent Expressions that have multiple terms inside them get parenthesis
+			for (int k = 1; k < terms.size(); k++) {
+				printOperator(this.operators.get(k));
+				boolean useParenthesis = false;
+				if (this.terms.get(k).type == math_type.parent) {
+					useParenthesis = true;
+				}
+				this.terms.get(k).printExpression(useParenthesis);
+				
+			}
+
+			
+		} else {
+			System.out.println("this Expression doesn't have a type"); 
+			System.exit(0);
+		}
+		
+		if (parenthesis) {
+			System.out.print(")");
+		}
+		
+	}
+	
+	// prints out expression but with a new line afterwards
+	public void printExpressionln(boolean parenthesis) {
+		this.printExpression(parenthesis);
+		System.out.println();
 	}
 	
 
+	public void copyFrom(Expression other) {
+		this.numericValue = other.numericValue;
+		this.type = other.type;
+		this.terms = other.terms;
+		this.operators = other.operators;
+	}
+	
 	/* === constructors === */
 	public Expression() {
 		this.reset();
 		this.type = math_type.symbol;
 	}
 	
+	//TODO: add support for parenthesis
 	public Expression(String input) {
-		// clean input
+		// remove spaces from input
 		input = input.replace(" ", "");
 		
-		// find first operator as we need it
 		Operator lastOperator = Operator.add;
-//		for (int k = 0; k < input.length(); k++) {
-//			if (isOperator(input.charAt(k))) {
-//				lastOperator = parseOperator(input.charAt(k));
-//				break;
-//			} else {
-//				lastOperator = Operator.multiply;
-//			}
-//		}
+
 		
-		double lastNumber = Double.NaN;
-		String currentNumber = null;
-		boolean lookingForOperator = false;
+		double currentNumber_double = Double.NaN;
+		String currentNumberStr = null;
 		boolean insideNumber = false;
+		
 		
 		for (int k = 0; k < input.length(); k++) {
 			char current = input.charAt(k);
@@ -373,52 +402,59 @@ public class Expression {
 				this.append(new Expression(), lastOperator);
 				continue;
 			}
-			
-			if (current >= '1' && current <= '9')  {
+			// found number
+			if ((current >= '0' && current <= '9') || current == '.')  {
 				
+				// numbers may be multiple characters long so we need to keep track if
+				// we're currently parsing a number or this is the first letter
 				if (insideNumber) {
-					currentNumber = currentNumber + current;
+					currentNumberStr = currentNumberStr + current;
 				} else {
 					insideNumber = true;
-					currentNumber = Character.toString(current);
+					currentNumberStr = Character.toString(current);
 				}
 				
 			} else if (Expression.isOperator(current)) {
 				
-				if (currentNumber != null) {
+				// if we've reached the end of a number we need to parse
+				   // parse it and append the number
+				if (currentNumberStr != null) {
 					
-					lastNumber = Double.parseDouble(currentNumber);
+					currentNumber_double = Double.parseDouble(currentNumberStr);
+					
 					
 					if (lastOperator == null) {
-						this.setNumericValue(lastNumber);
+						this.setNumericValue(currentNumber_double);
 					} else {
-						this.append(new Expression(lastNumber), lastOperator);
+						this.append(new Expression(currentNumber_double), lastOperator);
 					}
-					currentNumber = null;
+					currentNumberStr = null;
 					lastOperator = null;
-					lastNumber = Double.NaN;
+					currentNumber_double = Double.NaN;
 					insideNumber = false;
 					
 				}
 				
+				// parse and remember this operator for later
 				lastOperator = parseOperator(current);
 				
 				
 			} else {
-				System.out.println("error evaluating equation");
+				System.out.println("error parsing equation");
 				System.exit(0);
 			}
-			sortOperators();
+			
 			
 		}
 		
 		// parsing and adding the last number to the equation. not necessary if last term is variable
-		if (currentNumber != null) {
-			lastNumber = Double.parseDouble(currentNumber);
-			this.append(new Expression(lastNumber), lastOperator);
+		if (currentNumberStr != null) {
+			currentNumber_double = Double.parseDouble(currentNumberStr);
+			this.append(new Expression(currentNumber_double), lastOperator);
 		}
 		
-		
+		// apply order of operations
+		sortOperators();
 		
 	}
 	
@@ -470,6 +506,8 @@ public class Expression {
 	public void setOperator(int index, Operator newOperator) {
 		operators.set(index, newOperator);
 	}
+	
+	
 	// === simple information getters === //
 	public boolean isParent() {
 		return (this.getType() == math_type.parent) ;
@@ -484,9 +522,45 @@ public class Expression {
 		return (this.getType() == math_type.number) ;
 	}
 	
-	public boolean isSameOrder(Operator x, Operator y)  {
-		return (((x == Operator.add || x == Operator.subtract) && (y == Operator.add || y == Operator.subtract))    ||     ((x == Operator.multiply || x == Operator.divide) && (y == Operator.multiply || y == Operator.divide)));
-	}
+	
+	
+	// ==== static utility functions ==== \\
+
+	
+	// checks if char is supported operator
+		public static boolean isOperator(char operator) {
+			return (operator == '*' || operator == '/' || operator == '+' || operator == '-');
+		}
+		
+		public static boolean isSameOrder(Operator x, Operator y)  {
+			return (((x == Operator.add || x == Operator.subtract) && (y == Operator.add || y == Operator.subtract))    ||     ((x == Operator.multiply || x == Operator.divide) && (y == Operator.multiply || y == Operator.divide)));
+		}
+		
+		public static void printOperator(Operator toPrint) {
+			if (toPrint == Operator.add) {
+				System.out.print(" + ");
+			} else if (toPrint == Operator.subtract) {
+				System.out.print(" - ");
+			} else if (toPrint == Operator.divide) {
+				System.out.print(" / ");
+			} else if (toPrint == Operator.multiply) {
+				System.out.print(" * ");
+			}
+		}
+		
+		// returns correct Operator enum for given char
+		public static Operator parseOperator(char current) {
+			if (current == '+') {
+				return Operator.add;
+			} else if (current == '-') {
+				return Operator.subtract;
+			} else if (current == '*') {
+				return Operator.multiply;
+			} else if (current == '/') {
+				return Operator.divide;
+			}
+			return null;
+		}
 	
 }
 
