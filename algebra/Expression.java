@@ -99,9 +99,8 @@ public class Expression {
 
 			// remove the elements, combine them, and nest the new Expression inside this Expression
 			
-			append(toNest, Operator.add);
+			this.append(toNest, Operator.add);
 			
-			this.printExpressionln(false);
 			// recursive call - could implement loop instead
 			this.clean();
 			this.sortOperators();
@@ -467,7 +466,22 @@ public class Expression {
 				// parse and remember this operator for later
 				lastOperator = parseOperator(current);
 				
+			} else if (current == '(') {
 				
+				int parenthesisLevel = 1;
+				int i = k+1;
+				while (parenthesisLevel > 0 && i < input.length()) {
+					if (input.charAt(i) == '(') {
+						parenthesisLevel++;
+					} else if (input.charAt(i) == ')') {
+						parenthesisLevel--;
+					}
+					i++;
+				}
+				
+				this.append(new Expression(input.substring(k+1, i-1)), lastOperator);
+				
+				k = i;
 			} else {
 				System.out.println("error parsing equation");
 				System.exit(0);

@@ -9,8 +9,8 @@ public class Algebra_main {
 		Scanner keyboard = new Scanner(System.in);
 		//String toEvaluate = keyboard.nextLine();
 		
-		//String toEvaluate = "3 * 85 = x + 2 + 1 + 4* 5 * 2 + 1";
-		String toEvaluate = "4*x*5+3*2=8*1";
+		//String toEvaluate = "3 * 5 = x + 2 + 1 + 4* 1 * 2 + 1";
+		String toEvaluate = "4*x*(5+3)*2=8*1";
 		
 		Equation test = new Equation(toEvaluate);
 	    //Expression test = new Expression("8 + 4 - 1");
