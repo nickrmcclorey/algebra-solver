@@ -40,6 +40,21 @@ public class Expression {
 			}
 		}
 		
+		
+	}
+	
+	public boolean containsMismatch() {
+		if (!this.isParent()) {
+			return false;
+		}
+		
+		Operator first = operators.get(0);
+		for (Operator k : operators) {
+			if (k != first) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/* used by String constructor to apply order of operations
@@ -50,7 +65,7 @@ public class Expression {
 	private void sortOperators() {
 		
 		// base cases
-		if (operators == null || operators.size() < 2 || !this.containsMultOrDiv()) {
+		if (operators == null || operators.size() < 2 || !this.containsMismatch()) {
 			return;
 		}
 		
@@ -61,22 +76,36 @@ public class Expression {
 				break;
 			}
 		}
+		if (k == operators.size()) {
+			return;
+		}
 		
 			// make new Expression with the multiplication or division operation inside
 			Expression toNest = new Expression(terms.get(k-1));
-			toNest.append(terms.get(k),operators.get(k));
-			Operator operatorOfNested = operators.get(k-1);
+			terms.remove(k-1);
+			operators.remove(k-1);
+			k--;
+			
+			for (int i = k; i < operators.size(); i++) {
+				if (isSameOrder(operators.get(i), Operator.multiply)) {
+					toNest.append(terms.get(i), operators.get(i));
+					terms.remove(i);
+					operators.remove(i);
+					i--;
+				} else if (isSameOrder(operators.get(i), Operator.add)) {
+					break;
+				}
+			}
 
 			// remove the elements, combine them, and nest the new Expression inside this Expression
-			terms.remove(k);
-			terms.remove(k-1);
-			operators.remove(k);
-			operators.remove(k-1);
-			append(toNest, operatorOfNested);
-
+			
+			append(toNest, Operator.add);
+			
+			this.printExpressionln(false);
 			// recursive call - could implement loop instead
+			this.clean();
 			this.sortOperators();
-
+			
 	}
 	
 	// the first Operator is usually meaningless but I like to have it as the same order of operation as the other operators
