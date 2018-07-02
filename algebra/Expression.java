@@ -27,9 +27,24 @@ public class Expression {
 	
 	// does some checks to make sure the data is formatted in a good way. Call this after mutating the object
 	public void clean() {
+		
+		if (terms != null && terms.size() != operators.size()) {
+			System.out.println("operators and terms not synched");
+			System.exit(0);
+		}
+		
 		if (terms != null && terms.size() == 1) {
+			
+			// if only term is division, then prepend a 1. in other words, go from "/3" to "1/3"
+			// this may happen during the simplify function
+			if (operators.get(0) == Operator.divide) {
+				operators.add(0, Operator.multiply);
+				terms.add(0, new Expression(1));
+			} else {
 			this.copyFrom(terms.get(0));
-		} 
+			}// end of inner if
+			
+		} // end of outer if
 		
 		// prevents the first operator from being of a different order than the others
 		if (operators != null && operators.size() >= 2 && !isSameOrder(operators.get(0), operators.get(1))) {
@@ -50,7 +65,7 @@ public class Expression {
 		
 		Operator first = operators.get(0);
 		for (Operator k : operators) {
-			if (k != first) {
+			if (!isSameOrder(first, k)) {
 				return true;
 			}
 		}
@@ -97,11 +112,14 @@ public class Expression {
 				}
 			}
 
-			// remove the elements, combine them, and nest the new Expression inside this Expression
-			
+			// remove the elements, combine them, and nest the new Expression inside this Expressio
 			this.append(toNest, Operator.add);
 			
 			// recursive call - could implement loop instead
+			for (Operator j : operators) {
+				System.out.println(j);
+			}
+			System.out.println();
 			this.clean();
 			this.sortOperators();
 			
@@ -248,12 +266,15 @@ public class Expression {
 			Transfer timesOne = new Transfer();
 			timesOne.setNumber(1);
 			timesOne.setOperator(Operator.multiply);
+			return timesOne;
 		// if this Expression is 1/x	
-		} else if (terms.get(0).getNumericValue() == 1 && terms.get(1).isSymbol() && operators.get(1).equals(Operator.divide)) {
-			this.setType(math_type.symbol);
+		} else if (terms.size() == 2 && terms.get(0).getNumericValue() == 1 && terms.get(1).containsSymbol() && operators.get(1).equals(Operator.divide)) {
+			operators.set(1, Operator.multiply);
 			Transfer pleaseInvert = new Transfer();
 			pleaseInvert.setType(Transfer_type.invert);
 			return pleaseInvert;
+		} else if (this.isSimpleFraction() && terms.get(1).containsSymbol()) {
+			
 		}
 		
 		//TODO: clean up this loop. The structure of the code below is aweful
@@ -565,6 +586,9 @@ public class Expression {
 		return (this.getType() == math_type.number) ;
 	}
 	
+	public boolean isSimpleFraction( ) {
+		return (operators != null && operators.size() == 2 && operators.get(1) == Operator.divide);
+	}
 	
 	
 	// ==== static utility functions ==== \\

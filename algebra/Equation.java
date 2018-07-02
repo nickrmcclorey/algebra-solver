@@ -17,7 +17,7 @@ public class Equation {
 			varSide = rightSide;
 			cleanSide = leftSide;
 		} else {
-			System.out.println("error, two variables found, that feature is not yet available");
+			System.out.println("error, two instances of a variable found, that feature is not yet available");
 			System.exit(0);
 		}
 		
