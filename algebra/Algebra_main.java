@@ -19,11 +19,11 @@ public class Algebra_main {
 		//System.out.print("# of operators");
 		//System.out.println(test.getLeftSide().operators.size());
 		
-		
+
 		System.out.println(test.solveEquation());
 		System.out.println("answer above");
 		
-		if (false) {
+		if (true) {
 			System.exit(0);
 		}
 		
