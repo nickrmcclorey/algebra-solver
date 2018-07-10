@@ -116,10 +116,6 @@ public class Expression {
 			this.append(toNest, Operator.add);
 			
 			// recursive call - could implement loop instead
-			for (Operator j : operators) {
-				System.out.println(j);
-			}
-			System.out.println();
 			this.clean();
 			this.sortOperators();
 			
