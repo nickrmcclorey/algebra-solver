@@ -1,5 +1,4 @@
-Algebra Solver
-===
+#Algebra Solver
 Taking algebraic expressions as strings and solving
 This program can evaluate simple algebraic expressions.
 It can add, subtract, mutiply and divide but it can't raise anything to a power.
