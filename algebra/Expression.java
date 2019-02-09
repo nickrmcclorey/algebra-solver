@@ -247,9 +247,7 @@ public class Expression {
 		} else {
 			this.setNumericValue(answer);
 		}
-		
-		
-	
+
 	}// end of function simplify()
 	
 	// USE FUNCTION CAREFULLY - it is mutable and significantly changes this expression. 

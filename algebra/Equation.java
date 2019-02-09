@@ -6,8 +6,8 @@ public class Equation {
 	private Expression rightSide;
 	private Expression cleanSide;
 	private Expression varSide;
-	
-	
+
+
 	public double solveEquation() {
 		
 		if (leftSide.containsSymbol() && !rightSide.containsSymbol()) {
@@ -25,7 +25,6 @@ public class Equation {
 		while (!varSide.isSymbol()) {
 			varSide.clean();
 			cleanSide.clean();
-			this.printEquation();
 			// varSide removes an Expression from itself and gives it to us so we can transfer it to the other side
 			Transfer toTransfer = varSide.isolateVariable();
 			
@@ -53,8 +52,6 @@ public class Equation {
 			
 			cleanSide.append(new Expression(toTransfer.getNumber()), toTransfer.getOperator());
 			cleanSide.simplify();
-			
-			
 		}
 		
 		cleanSide.simplify();

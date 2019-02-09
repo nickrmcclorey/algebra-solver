@@ -1,4 +1,4 @@
-#Algebra Solver
+###Algebra Solver
 Taking algebraic expressions as strings and solving
 This program can evaluate simple algebraic expressions.
 It can add, subtract, mutiply and divide but it can't raise anything to a power.
@@ -7,7 +7,7 @@ I hope to add support for exponents as well as polynomial multiplication in expr
 
 ### Compiling and Running
 Javac and Java must be installed and added to your path.
-Clone the repository and cd into the project folder.
-"javac algebra/Algebra_main.java"
-If you don't get any errors then run by typing
+Clone the repository and open a terminal in the project folder.
+Type "javac algebra/Algebra_main.java"
+If you don't get any errors, run the program by typing
 "java algebra.Algebra_main"
