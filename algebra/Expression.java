@@ -214,8 +214,8 @@ public class Expression {
 		
 		for (int k = 0; k < terms.size(); k++) {
 			terms.get(k).simplify();
-			if (terms.get(k).getType() != math_type.symbol) {
-				
+			if (terms.get(k).getType() == math_type.number) {
+
 				if (operators.get(k) == Operator.add) {
 					answer += terms.get(k).getNumericValue();
 				} else if (operators.get(k) == Operator.subtract) {
@@ -247,7 +247,7 @@ public class Expression {
 		} else {
 			this.setNumericValue(answer);
 		}
-
+		
 	}// end of function simplify()
 	
 	// USE FUNCTION CAREFULLY - it is mutable and significantly changes this expression. 
@@ -354,10 +354,7 @@ public class Expression {
 			System.exit(0);
 		}
 	}
-	
-	
-	
-	
+
 	// parenthesis parameter determines whether parenthesis surounds this expression
 	public void printExpression(boolean parenthesis) {
 		if (parenthesis) {
@@ -390,7 +387,6 @@ public class Expression {
 				
 			}
 
-			
 		} else {
 			System.out.println("this Expression doesn't have a type"); 
 			System.exit(0);
@@ -538,15 +534,18 @@ public class Expression {
 	public math_type getType() {
 		return type;
 	}
+
 	public void setType(math_type type) {
 		if (type == math_type.symbol) {
 			this.reset();
 		}
 		this.type = type;
 	}
+
 	public double getNumericValue() {
 		return numericValue;
 	}
+
 	public void setNumericValue(double numericValue) {
 		this.reset();
 		this.numericValue = numericValue;

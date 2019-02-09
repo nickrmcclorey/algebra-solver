@@ -52,6 +52,7 @@ public class Equation {
 			
 			cleanSide.append(new Expression(toTransfer.getNumber()), toTransfer.getOperator());
 			cleanSide.simplify();
+			varSide.simplify();
 		}
 		
 		cleanSide.simplify();
